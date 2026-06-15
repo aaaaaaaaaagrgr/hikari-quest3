@@ -173,8 +173,8 @@ async function runBattle(group, opts={}){
       stopBgm();
       SFX.levelup();
       await msg(BV.boss ? `${foes[foes.length-1].name}を うちたおした！！` : 'まものたちは われに かえった！');
-      const exp = foes.reduce((s,f)=>s+f.exp,0);
-      const gold = foes.reduce((s,f)=>s+f.gold,0);
+      const exp = (opts.exp!=null) ? opts.exp : foes.reduce((s,f)=>s+f.exp,0);
+      const gold = (opts.gold!=null) ? opts.gold : foes.reduce((s,f)=>s+f.gold,0);
       const killOrder = BV.killOrder;
       BV = null;
       scene = 'field';

@@ -409,6 +409,31 @@ const PAST_BOSSES = [
 
 const GAKUFU_FLAGS = ['g1','g2','g3','g4','g5'];
 
+// 闘技場（たたかいの いしぶみ）で再戦できるボス。弱い順。exp/goldは再戦用に上書き。
+// 変身ボス(nocturne/zarba/noir)は第一形態を入れれば連戦で最終形態まで戦える。
+const ARENA_BOSSES = [
+  {key:'b_kslime',   exp:120,   gold:80},
+  {key:'goblinlord', exp:140,   gold:120},
+  {key:'gaiaworm',   exp:200,   gold:150},
+  {key:'lyrica',     exp:500,   gold:300},
+  {key:'grantree',   exp:540,   gold:340},
+  {key:'eldertrent', exp:680,   gold:420},
+  {key:'kraken',     exp:1000,  gold:600},
+  {key:'donga',      exp:1200,  gold:700},
+  {key:'pharaoh',    exp:1500,  gold:900},
+  {key:'b_kirie',    exp:1800,  gold:1000},
+  {key:'fagor',      exp:2000,  gold:1100},
+  {key:'glacies',    exp:2200,  gold:1300},
+  {key:'ignis',      exp:2600,  gold:1500},
+  {key:'bariton',    exp:3000,  gold:1700},
+  {key:'reiga',      exp:3800,  gold:2200},
+  {key:'darkgeneral',exp:5000,  gold:3000},
+  {key:'nocturne',   exp:6500,  gold:4000},
+  {key:'zarba',      exp:7500,  gold:5000},
+  {key:'noir',       exp:10000, gold:7000},
+  {key:'eden',       exp:15000, gold:10000},
+];
+
 // ---------------- エンカウントテーブル ----------------
 const ENC_TABLES = {
   field1:   [['slime'],['slime','slime'],['rat'],['bat'],['goblin'],['slime','bat'],['bee'],['goblin','rat'],['worm']],
@@ -950,7 +975,10 @@ const MAPS = {
   origin: {
     name:'はじまりのほこら', tiles:buildOrigin(), bgm:'dungeon', dungeon:true, pad:'#',
     entry:{x:9,y:13}, exitTo:{x:4,y:17},
-    npcs:[],
+    npcs:[
+      // エデン撃破後、いた場所に《たたかいの いしぶみ》が現れて全ボスと再戦できる
+      {x:9, y:4, emoji:'🗿', event:'arena', requires:'b_eden'},
+    ],
     objects:[
       {id:'or_b', type:'boss', x:9, y:4, monster:'eden', flag:'b_eden', eden:true,
        pre:['ほこらの おくで しろい りゅうが しずかに めを ひらいた。','「……すべての まものと こころを かわした こよ。」','「すべての ぬしたちを こえてきた こよ。」','「わたしは エデン。 さいしょの うた、 さいしょの まもの。」','「さあ── あなたの うたを きかせてちょうだい！！」']},

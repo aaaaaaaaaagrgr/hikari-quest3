@@ -11,8 +11,8 @@ vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8'), ctx);
 
 const {WORLD_TILES, MAPS, ENTRANCES, WALKABLE, SHOPS, ITEMS, MONSTERS, ENC_TABLES,
        SPELLS, CLASSES, EXP_TABLE, MAX_LV, WORLD_ENC, ENC_RATE,
-       BOOK_SPECIES, PAST_BOSSES, GAKUFU_FLAGS} = vm.runInContext(
-  '({WORLD_TILES, MAPS, ENTRANCES, WALKABLE, SHOPS, ITEMS, MONSTERS, ENC_TABLES, SPELLS, CLASSES, EXP_TABLE, MAX_LV, WORLD_ENC, ENC_RATE, BOOK_SPECIES, PAST_BOSSES, GAKUFU_FLAGS})', ctx);
+       BOOK_SPECIES, PAST_BOSSES, GAKUFU_FLAGS, ARENA_BOSSES} = vm.runInContext(
+  '({WORLD_TILES, MAPS, ENTRANCES, WALKABLE, SHOPS, ITEMS, MONSTERS, ENC_TABLES, SPELLS, CLASSES, EXP_TABLE, MAX_LV, WORLD_ENC, ENC_RATE, BOOK_SPECIES, PAST_BOSSES, GAKUFU_FLAGS, ARENA_BOSSES})', ctx);
 
 let errors = [], warns = [];
 const err = s=>errors.push(s);
@@ -195,6 +195,12 @@ for(const b of PAST_BOSSES){
 }
 for(const f of GAKUFU_FLAGS){
   if(!bossFlags.has(f)) err(`gakufu flag '${f}' has no boss object`);
+}
+// 闘技場ボスがすべて実在するボスか
+for(const b of (ARENA_BOSSES||[])){
+  if(!MONSTERS[b.key]) err(`arena: unknown boss '${b.key}'`);
+  else if(!MONSTERS[b.key].boss) warn(`arena: '${b.key}' is not flagged boss`);
+  if(!(b.exp>=0) || !(b.gold>=0)) err(`arena: '${b.key}' bad exp/gold`);
 }
 // アイテム種別チェック
 for(const [iid,it] of Object.entries(ITEMS)){

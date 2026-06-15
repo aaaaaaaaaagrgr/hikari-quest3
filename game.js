@@ -599,9 +599,62 @@ async function ranchFlow(){
   await msg('「まものは たからもの、 だいじにな！」');
 }
 
+// ---------------- 闘技場（たたかいの いしぶみ） ----------------
+// 全ボスと再戦してレベル上げ・腕試し。HP/MP全回復→1体ずつ、または全連戦。
+async function arenaFlow(){
+  await msg('エデンが のこした 《たたかいの いしぶみ》が しずかに かがやいている。',
+    'ふれると これまで たたかった つわものたちの きおくが よみがえり',
+    'なんども しょうぶ できる。 レベルあげにも うってつけだ！');
+  for(;;){
+    const items = [{label:'🔥 ぜんボス れんぞくチャレンジ', right:''}];
+    for(const b of ARENA_BOSSES) items.push({label:MONSTERS[b.key].name, right:`EXP${b.exp}`});
+    const i = await choiceMenu(items, {x:34, y:64, w:580, view:9, title:'だれと たたかう？'});
+    if(i<0) break;
+    if(i===0){ await arenaGauntlet(); continue; }
+    const b = ARENA_BOSSES[i-1];
+    const ok = await yesno([`${MONSTERS[b.key].name}と たたかいますか？`, '（HP・MPは ぜんかいふくします）']);
+    if(!ok) continue;
+    for(const m of G.party){ m.hp = mMaxHp(m); m.mp = mMaxMp(m); m.poison = false; }
+    const r = await runBattle([b.key], {boss:true, exp:b.exp, gold:b.gold});
+    if(r==='dead'){ await handleDeath(); return; }
+    if(r==='win') await msg('「みごとな たたかいだった！ また いつでも おいで。」');
+  }
+  await msg('いしぶみの ひかりが そっと おさまった。');
+}
+
+async function arenaGauntlet(){
+  const ok = await yesno(['ぜんボス れんぞくチャレンジ！',
+    `${ARENA_BOSSES.length}たいを かいふくなしで れんぱ できるか！？`, 'いどみますか？']);
+  if(!ok) return;
+  for(const m of G.party){ m.hp = mMaxHp(m); m.mp = mMaxMp(m); m.poison = false; }
+  let n = 0;
+  for(const b of ARENA_BOSSES){
+    n++;
+    await msg(`── だい ${n} せん ／ ${ARENA_BOSSES.length} ──`, `${MONSTERS[b.key].name}が あらわれた！`);
+    const r = await runBattle([b.key], {boss:true, exp:b.exp, gold:b.gold});
+    if(r==='dead'){
+      await msg(`${n-1} たいを たおして ちからつきた……`, 'なかなか やるじゃないか！ また ちょうせんしよう！');
+      await handleDeath();
+      return;
+    }
+  }
+  SFX.levelup();
+  if(!G.flags.arena_clear){
+    G.flags.arena_clear = 1;
+    G.gold += 30000; addItem('meat3', 3);
+    await msg('🏆 ぜんボス れんぱ たっせい！！ 🏆',
+      'きみは まぎれもなく さいきょうの まものつかいだ！',
+      'ほうびに 30000ゴールドと まぼろしのにく3こを てにいれた！');
+  } else {
+    await msg('🏆 ぜんボス れんぱ ふたたび たっせい！！ 🏆',
+      'さすがの じつりょく…… きみに かなう ものは もう いない！');
+  }
+}
+
 // ---------------- イベント ----------------
 const EVENTS = {
   async ranch(){ await ranchFlow(); },
+  async arena(){ await arenaFlow(); },
 
   async monta(){
     if(!G.flags.q0){
@@ -892,6 +945,9 @@ async function objInteract(obj){
       }
       if(obj.eden){
         await edenJoinSeq();
+        refreshNpcs();   // 《たたかいの いしぶみ》（闘技場）を その場に出現させる
+        await msg('エデンが いた ばしょに 《たたかいの いしぶみ》が あらわれた！',
+          'ふれれば いつでも これまでの ボスたちと さいせん できる。');
       }
       if(obj.final) await endingSeq();
     }
