@@ -1255,15 +1255,21 @@ async function statsFlow(){
   }
 }
 
-async function doSave(){
+// 現在の状態を ぼうけんのしょ に書き込む（成否を返す）
+function writeSave(){
   const playMs = G.playMs + (Date.now()-playStart);
   G.playMs = playMs; playStart = Date.now();
-  const data = {G, map:curMap, x:hero.x, y:hero.y};
   try{
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    localStorage.setItem(SAVE_KEY, JSON.stringify({G, map:curMap, x:hero.x, y:hero.y}));
+    return true;
+  }catch(e){ return false; }
+}
+
+async function doSave(){
+  if(writeSave()){
     SFX.heal();
     await msg('ぼうけんのしょに きろくした！');
-  }catch(e){
+  }else{
     await msg('セーブに しっぱいした……');
   }
 }
@@ -1411,7 +1417,26 @@ async function endingSeq(){
     `とうたつレベル： ${G.party.map(m=>'Lv'+m.lv).join(' ')}`,
     '── THE END ── あそんでくれて ありがとう！');
   await waitKey(['ok']);
-  if(endResolver){ const r = endResolver; endResolver = null; r(); }
+  // クリア後も ぼうけんを つづけられるように、安全な町へ もどして オートセーブする。
+  // （タイトルには もどさない＝セーブしていない人でも しんこうが きえない）
+  for(const m of G.party){ m.hp = mMaxHp(m); m.mp = mMaxMp(m); m.poison = false; }
+  const town = G.lastTown || 'milte';
+  enterMap(town, MAPS[town].entry.x, MAPS[town].entry.y);
+  scene = 'field';
+  const saved = writeSave();
+  if(saved) SFX.heal();
+  await msg('せかいに へいわが もどった。',
+    'だが ぼうけんは まだ つづく……！',
+    saved ? '（クリアきろくを ぼうけんのしょに セーブしました）'
+          : '（セーブに しっぱい… メニューから てどうで セーブしてね）');
+  if(!G.flags.b_eden && edenReady()){
+    await msg('にしのはての 《はじまりのほこら》で',
+      'なにかが きみを まっている きがする……。');
+  } else if(!G.flags.b_eden){
+    await msg('ずかんを かんせいさせ すべての ぬしを たおせば',
+      'さいごの ひみつが あかされる かもしれない。');
+  }
+  // endResolver は解決しない → タイトルへ戻らず フィールドで続行
 }
 
 // ============================================================
