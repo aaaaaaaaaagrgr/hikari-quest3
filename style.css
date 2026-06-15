@@ -1,0 +1,16 @@
+html,body{
+  margin:0; padding:0; background:#0a0a14; color:#ccc;
+  font-family:"DotGothic16","MS Gothic",monospace;
+  height:100%; overflow:hidden;
+}
+#wrap{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100vh; gap:8px;
+}
+#game{
+  image-rendering:pixelated;
+  background:#000;
+  box-shadow:0 0 40px #123;
+  max-width:98vw; max-height:90vh;
+}
+#help{ font-size:13px; color:#778; }
